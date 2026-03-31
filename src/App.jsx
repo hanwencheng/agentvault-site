@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
+import OnboardingPage from './Onboarding'
 
 // ─── i18n ───
 const t = {
   en: {
-    nav: { paradigm:'Paradigm Shift', product:'Product', compare:'vs 1Password', model:'Business Model', roadmap:'Roadmap' },
+    nav: { paradigm:'Paradigm Shift', product:'Product', onboarding:'Onboarding', compare:'vs 1Password', model:'Business Model', roadmap:'Roadmap' },
     heroTag: 'Agent Runtime Control Layer · Heima Network',
-    heroTitle1: 'Agent', heroTitle2: 'Vault',
+    heroTitle1: 'Agent', heroTitle2: 'Keys',
     heroSub: 'Keys were designed for humans who act occasionally. Agents act continuously. The problem is no longer key storage — it\'s how to control autonomous execution under constraints.',
     heroMeta: 'Business Plan — March 2026',
     btnDemo: 'View Live Demo', btnPlan: 'Read Full Plan',
@@ -129,9 +130,9 @@ const t = {
     footSub: 'AgentVault — Your keys. Your policies. Your agents. Your rules.',
   },
   zh: {
-    nav: { paradigm:'范式转变', product:'产品', compare:'vs 1Password', model:'商业模式', roadmap:'路线图' },
+    nav: { paradigm:'范式转变', product:'产品', onboarding:'配置流程', compare:'vs 1Password', model:'商业模式', roadmap:'路线图' },
     heroTag: 'Agent 运行时控制层 · Heima Network',
-    heroTitle1: 'Agent', heroTitle2: 'Vault',
+    heroTitle1: 'Agent', heroTitle2: 'Keys',
     heroSub: '密钥为偶尔行动的人类设计。Agent 持续行动。问题不再是密钥存储——而是如何在约束下控制自主执行。',
     heroMeta: '商业计划书 — 2026 年 3 月',
     btnDemo: '查看演示', btnPlan: '阅读完整方案',
@@ -242,14 +243,38 @@ const t = {
   }
 }
 
+// ─── Simple hash router ───
+function useHashRoute() {
+  const [route, setRoute] = useState(window.location.hash || '#/')
+  useEffect(() => {
+    const handler = () => setRoute(window.location.hash || '#/')
+    window.addEventListener('hashchange', handler)
+    return () => window.removeEventListener('hashchange', handler)
+  }, [])
+  return route
+}
+
 // ─── App ───
 export default function App() {
   const [lang, setLang] = useState('en')
   const s = t[lang]
+  const route = useHashRoute()
+
+  if (route === '#/onboarding') {
+    return (
+      <div>
+        <Nav lang={lang} setLang={setLang} s={s} />
+        <OnboardingPage lang={lang} />
+      </div>
+    )
+  }
+
   return (
     <div>
       <Nav lang={lang} setLang={setLang} s={s} />
       <Hero s={s} />
+      <div className="divider" />
+      <UseCaseBanner lang={lang} />
       <div className="divider" />
       <ParadigmShift s={s} />
       <div className="divider" />
@@ -285,10 +310,11 @@ export default function App() {
 function Nav({ lang, setLang, s }) {
   return (
     <nav className="nav">
-      <div className="nav-logo">Agent<span>Vault</span></div>
+      <a href="#/" className="nav-logo" style={{ textDecoration:'none', color:'var(--text)' }}>Agent<span>Keys</span></a>
       <div className="nav-links">
         <a href="#paradigm">{s.nav.paradigm}</a>
         <a href="#product">{s.nav.product}</a>
+        <a href="#/onboarding" style={{ color:'var(--accent-light)' }}>{s.nav.onboarding}</a>
         <a href="#compare">{s.nav.compare}</a>
         <a href="#model">{s.nav.model}</a>
         <a href="#roadmap">{s.nav.roadmap}</a>
@@ -315,6 +341,40 @@ function Hero({ s }) {
         </div>
         <p style={{ marginTop:24, fontSize:13, color:'var(--text-dim)' }}>{s.heroMeta}</p>
       </div>
+    </section>
+  )
+}
+
+// ─── Use Case Banner ───
+function UseCaseBanner({ lang }) {
+  return (
+    <section className="section-sm container">
+      <a href="#/onboarding" style={{ textDecoration:'none' }}>
+        <div style={{
+          background:'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(16,185,129,0.08))',
+          border:'1px solid rgba(99,102,241,0.2)',
+          borderRadius:16, padding:'32px 36px',
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+          cursor:'pointer', transition:'all 0.3s',
+        }} onMouseOver={e=>e.currentTarget.style.borderColor='var(--accent)'}
+           onMouseOut={e=>e.currentTarget.style.borderColor='rgba(99,102,241,0.2)'}>
+          <div>
+            <div style={{ fontSize:11, fontWeight:700, letterSpacing:2, textTransform:'uppercase', color:'var(--accent-light)', marginBottom:8 }}>
+              {lang==='zh'?'核心应用场景':'KEY USE CASE'}
+            </div>
+            <h3 style={{ fontSize:22, fontWeight:800, color:'var(--text)', marginBottom:6, letterSpacing:-0.5 }}>
+              {lang==='zh'?'零摩擦 Agent 配置：从 2 小时到 1 分钟':'Zero-Friction Agent Onboarding: 2 hours → 1 minute'}
+            </h3>
+            <p style={{ fontSize:14, color:'var(--text-muted)', margin:0 }}>
+              {lang==='zh'
+                ?'安装 agent 只需一条命令。但配置凭证要几小时。AgentKeys 把整个流程自动化——从创建账号到密钥轮换。'
+                :'Installing an agent takes one command. Setting up credentials takes hours. AgentKeys automates the entire flow — from account creation to key rotation.'
+              }
+            </p>
+          </div>
+          <div style={{ fontSize:32, color:'var(--accent-light)', flexShrink:0, marginLeft:24 }}>→</div>
+        </div>
+      </a>
     </section>
   )
 }
